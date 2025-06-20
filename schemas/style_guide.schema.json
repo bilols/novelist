@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "style_guide.schema.json",
+  "title": "StyleGuide",
+  "type": "object",
+  "required": ["voice", "tense", "rules"],
+  "properties": {
+    "voice": { "enum": ["first-person", "third-person limited", "third-person omniscient"] },
+    "tense": { "enum": ["past", "present"] },
+    "sentence_length": { "enum": ["short", "moderate", "long"], "default": "moderate" },
+    "lexical_density": { "enum": ["low", "moderate", "high"], "default": "moderate" },
+    "tone": { "type": "string" },
+    "banned_cliches": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rules": {
+      "description": "Author-specific overrides of Strunk & White rules",
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

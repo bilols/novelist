@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "outline.schema.json",
+  "title": "NovelOutline",
+  "type": "object",
+  "required": ["title", "genre", "target_length", "chapters"],
+  "properties": {
+    "title": { "type": "string" },
+    "genre": { "type": "string" },
+    "target_length": { "type": "integer", "minimum": 1000 },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["number", "title", "beats"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string" },
+          "beats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["summary"],
+              "properties": {
+                "summary": { "type": "string" },
+                "target_words": { "type": "integer", "minimum": 50 },
+                "sub_plots": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": { "type": "object" }
+  }
+}
