@@ -1,0 +1,44 @@
+# ─── Python build artefacts ──────────────────────────────────────────────
+# Byte-code
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual-envs (Poetry or venv)
+.venv/
+venv/
+env/
+
+# Distribution / build dirs
+dist/
+build/
+*.egg-info/
+
+# Jupyter and IPython
+.ipynb_checkpoints/
+.profile_default/
+ipython_config.py
+
+# ─── Poetry specific ────────────────────────────────────────────────────
+# (Poetry itself ignores its internal cache in user profile)
+poetry.lock.*
+
+# ─── Tools & editors ────────────────────────────────────────────────────
+# VS Code
+.vscode/
+# JetBrains (PyCharm, Rider, etc.)
+.idea/
+# Visual Studio (if ever opened)
+.vs/
+
+# ─── OS cruft ───────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Project output ─────────────────────────────────────────────────────
+artifacts/
+
+# ─── Logs & misc ────────────────────────────────────────────────────────
+*.log
+*.tmp
