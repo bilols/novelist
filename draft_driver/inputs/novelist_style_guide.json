@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "revision_date": "2025-06-17",
+  "language": "US English",
+  "narrative": {
+    "pov": "third_person_limited",
+    "tense": "past",
+    "primary_pov_characters": [
+      "Caleb",
+      "Ruth",
+      "Tilby"
+    ],
+    "tone": "sparse_reflective_ominous"
+  },
+  "formatting": {
+    "chapter_header": "Chapter <n> – <Title>",
+    "scene_break": "***",
+    "paragraph_spacing": "single_blank_line",
+    "dialogue": {
+      "quotation_mark": "\"",
+      "tag_examples": "\"We ride at dusk,\" Caleb said."
+    },
+    "internal_thoughts": "italics_allowed",
+    "emphasis": {
+      "bold": false,
+      "underline": false,
+      "all_caps": "permitted_for_signage_headings_acronyms_only"
+    },
+    "punctuation": {
+      "em_dash": "--",
+      "ellipsis": "...",
+      "oxford_comma": true
+    },
+    "numbers": {
+      "spell_out": "1-99",
+      "numerals": ">=100 and calendar years"
+    },
+    "dates": "Month Day, Year",
+    "time_of_day": "written_out"
+  },
+  "content_restrictions": [
+    "No automobiles, radios, Geiger counters, license plates, or post‑1912 tech",
+    "Avoid explicit nuclear terminology; use vague scientific language ('unstable ore')",
+    "Firearms must be historically accurate to 1900‑1912"
+  ],
+  "length_chunking": {
+    "chapter_target_words": "2200-2400",
+    "pieces_per_chapter": 5,
+    "piece_target_words": 500,
+    "piece_marker_pattern": "[C<n>-P<x>]"
+  },
+  "style_consistency": {
+    "no_head_hop": true,
+    "character_voice": {
+      "Caleb": "taciturn",
+      "Ruth": "analytical",
+      "Tilby": "plain_spoken"
+    },
+    "inheritance_clause_verbatim": true,
+    "use_shorthand": "Y‑9 only",
+    "sealed_box_description": "Langtry brand and wax seal"
+  },
+  "file_markup_rules": {
+    "output_format": "markdown",
+    "ascii_only": true
+  },
+  "trigger_word_limits": {
+    "ellipses_per_chapter": 3,
+    "ly_adverbs_per_500_words": 5,
+    "exclamation_points_per_chapter": 1
+  },
+  "change_log": {
+    "1.0": "Initial release with italics permitted and chunk markers added"
+  }
+}
