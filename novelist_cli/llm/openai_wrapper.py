@@ -1,17 +1,5 @@
 """
-Thin convenience wrapper around openai.ChatCompletion with:
-
-* unified interface (model, messages, **kwargs)
-* automatic token-cost logging
-* opt-in dry-run simulation for unit-tests
-
-Usage:
-    from novelist_cli.llm import call_llm
-
-    resp_text = call_llm(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": "Say hi"}],
-    )
+openai-python ≥1.0 compatible wrapper
 """
 
 from __future__ import annotations
@@ -20,34 +8,35 @@ import dotenv, os; dotenv.load_dotenv()
 import os
 import time
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import List, Dict, Any
 
-import openai
+from openai import OpenAI  # ← new style
 from rich import print
 
-# --- cost table (USD per 1K tokens) – keep up-to-date manually ------------
-_COSTS = {
+# ─── token price table (USD / 1K tokens) ──────────────────────────────────
+_COST = {
     "gpt-4o-mini": 0.0005,
     "gpt-4o": 0.005,
     "gpt-4-turbo": 0.003,
     "gpt-4.5-preview": 0.01,
 }
+_LOG_FILE = Path.home() / ".novelist_costs.csv"
+if not _LOG_FILE.exists():
+    _LOG_FILE.write_text("ts,model,prompt_tokens,completion_tokens,cost\n", encoding="utf-8")
 
-# CSV log file in user profile
-_COST_LOG = Path.home() / ".novelist_costs.csv"
-_COST_LOG.write_text("timestamp,model,prompt_tokens,completion_tokens,cost\n", encoding="utf-8") if not _COST_LOG.exists() else None
-
-# -------------------------------------------------------------------------
+# ─── client instance (reads OPENAI_API_KEY env var) ───────────────────────
+client = OpenAI()
 
 
-def _log_cost(model: str, prompt: int, completion: int) -> None:
-    cost = (prompt + completion) / 1000 * _COSTS.get(model, 0)
-    with _COST_LOG.open("a", encoding="utf-8") as f:
-        f.write(f"{int(time.time())},{model},{prompt},{completion},{cost:.6f}\n")
-    print(f"[grey50][LLM] model={model} prompt={prompt} completion={completion} → ${cost:.4f}[/]")
+def _log_cost(model: str, p: int, c: int) -> None:
+    cost = (p + c) / 1000 * _COST.get(model, 0.0)
+    with _LOG_FILE.open("a", encoding="utf-8") as f:
+        f.write(f"{int(time.time())},{model},{p},{c},{cost:.6f}\n")
+    print(f"[grey50][LLM] {model}  p={p}  c={c}  →  ${cost:.4f}[/]")
 
 
 def call_llm(
+    *,
     model: str,
     messages: List[Dict[str, str]],
     temperature: float = 0.7,
@@ -55,22 +44,24 @@ def call_llm(
     dry_run: bool = False,
 ) -> str:
     """
-    Return assistant message.content as plain string.
+    Execute a chat completion and return the assistant's message text.
 
-    Set ``dry_run=True`` to bypass the API and return an empty string
-    while still printing the would-have-been cost.
+    `dry_run=True` prints cost estimate and returns "" without calling the API.
     """
+
     if dry_run:
-        print(f"[yellow][dry-run] Would call {model} with {sum(len(m['content']) for m in messages)} chars[/]")
+        char_len = sum(len(m["content"]) for m in messages)
+        print(f"[yellow][dry-run] Would call {model} with ~{char_len} characters[/]")
         return ""
 
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
     )
 
-    usage = response["usage"]  # type: ignore[index]
-    _log_cost(model, usage["prompt_tokens"], usage["completion_tokens"])
-    return response["choices"][0]["message"]["content"]  # type: ignore[index]
+    usage = response.usage  # prompt_tokens, completion_tokens
+    _log_cost(model, usage.prompt_tokens, usage.completion_tokens)
+
+    return response.choices[0].message.content
