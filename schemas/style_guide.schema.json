@@ -1,23 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "style_guide.schema.json",
-  "title": "StyleGuide",
+  "title": "NovelStyleGuideV2",
   "type": "object",
-  "required": ["voice", "tense", "rules"],
+  "required": ["voice", "tense", "sentence_length", "lexical_density", "tone"],
   "properties": {
-    "voice": { "enum": ["first-person", "third-person limited", "third-person omniscient"] },
-    "tense": { "enum": ["past", "present"] },
-    "sentence_length": { "enum": ["short", "moderate", "long"], "default": "moderate" },
-    "lexical_density": { "enum": ["low", "moderate", "high"], "default": "moderate" },
-    "tone": { "type": "string" },
-    "banned_cliches": {
-      "type": "array",
-      "items": { "type": "string" }
+    "voice": {
+      "type": "string",
+      "enum": [
+        "first-person",
+        "second-person",
+        "third-person limited",
+        "third-person omniscient",
+        "third-person objective"
+      ]
     },
+    "tense": {
+      "type": "string",
+      "enum": [
+        "simple past",
+        "past perfect",
+        "past progressive",
+        "simple present",
+        "present perfect",
+        "present progressive"
+      ]
+    },
+    "sentence_length": { "type": "string", "enum": ["short", "moderate", "long"] },
+    "lexical_density": { "type": "string", "enum": ["low", "moderate", "high"] },
+    "tone":             { "type": "string" },
+
     "rules": {
-      "description": "Author-specific overrides of Strunk & White rules",
       "type": "object",
-      "additionalProperties": { "type": "string" }
-    }
+      "description": "Editorial formatting rules"
+    },
+    "preferred_pov":    { "type": "string" },
+    "piece_length":     { "type": "integer", "minimum": 100 }
   }
 }

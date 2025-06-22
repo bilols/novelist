@@ -1,0 +1,128 @@
+{
+    "title": "A Door Like Any Other",
+    "author": "Ward McCrea",
+    "premise": "A quiet, unremarkable apartment building for seniors hires a carpenter to renovate a vacant unit. The job seems simple, but the residents are anything but ordinary-especially one who claims he's \"been here forever.\" After weeks on the job, the carpenter discovers an old, warped wooden door in a hallway under renovation. He’s certain it wasn’t there before. When others brush it off, he investigates on his own. Inside, he finds something impossible: the door leads to moments from his past. At first, he’s enchanted by the chance to revisit old memories. But when darker chapters emerge, he’s forced to confront painful truths he’d buried. Then the door vanishes. Locked out, he’s left changed-and unknowingly replaced. A new carpenter arrives to take on the same job. In the building now lives a mysterious new resident: an old man with his name. The cycle quietly resets.",
+    "genre": "Horror",
+    "novel_target_words": 60000,
+    "chapters": 24,
+    "beats_per_chapter": 4,
+    "depth_enabled": true,
+    "include_prologue": true,
+    "include_epilogue": true,
+    "main_characters": [
+        {
+            "name": "Jack Morris",
+            "role": "Protagonist",
+            "traits": [
+                "polite",
+                "principled",
+                "haunted",
+                "disillusioned"
+            ],
+            "arc": "disillusionment arc, at first grounded ..."
+        },
+        {
+            "name": "Arthur \"Art\" Grayson",
+            "role": "Building landlord. A reluctant gatekeeper of the building’s secrets",
+            "traits": [
+                "emotionally detached",
+                "no-nonsense",
+                "practical",
+                "abrupt",
+                "gruff"
+            ],
+            "arc": "Knows something is strange about the place but refuses to acknowledge it. Has seen many workers like Jack come and go but never questions why they disappear"
+        },
+        {
+            "name": "Evelyn \"Evie\" Mathis",
+            "role": "Visiting nurse to the residents. Someone who recognizes that the building has its own timeline.",
+            "traits": [
+                "compassionate",
+                "guarded",
+                "secretive"
+            ],
+            "arc": "Some of the elderly patients confide in her about strange occurrences in the building. Seems to know when someone will die before they actually do."
+        },
+        {
+            "name": "Walter Finch",
+            "role": "Elderly resident that Jack will eventually replace in the room when he becomes trapped. Nobody seems to know when he moved in.",
+            "traits": [
+                "quiet",
+                "unnoticed",
+                "oddly aware of everything happening in the building"
+            ],
+            "arc": "Seen only occasionally. Sometimes whispers to the walls. Leaves notes under his door-but they are addressed to himself. Says things that will only make sense later."
+        },
+        {
+            "name": "Mrs. Agnes Holloway",
+            "role": "A building resident. A source of hidden knowledge. She may reveal unsettling truths about the building.",
+            "traits": [
+                "warm",
+                "chatty",
+                "nervous finger tapping when she talks"
+            ],
+            "arc": "She's the resident storyteller. She knows who used to live in each apartment and loves telling stories-especially about people who vanished. She will reveal key pieces of information to Jack when he talks to her at key parts of the story.  "
+        },
+        {
+            "name": "Mr. Bernard \"Bernie\" Wilkes",
+            "role": "A resident and warning presence.",
+            "traits": [
+                "irritable",
+                "night owl",
+                "eccentric"
+            ],
+            "arc": "A warning presence. Wanders the building at night. Speaks cryptically."
+        },
+        {
+            "name": "Daniel \"Danny\" Keene",
+            "role": "Building resident and reluctant guide.",
+            "traits": [
+                "intelligent",
+                "reclusive"
+            ],
+            "arc": "The Man Who Sees Too Much. Jack will try to get the resident Daniel to explain some of the buildings secrets after getting advice from Mrs. Agnes Holloway to see go talk to him."
+        }
+    ],
+    "timeline_key_events": [
+        "1. Jack arrives to renovate a unit and meets the distant superintendent, Art.",
+        "2. Evie, the nurse, greets him with a cryptic warning: \"Watch the clock.\"",
+        "3. Jack hears wall-scraping; Art insists everything’s normal.",
+        "4. Mrs. Holloway tells a story about a carpenter who vanished—details match Jack.",
+        "5. Bernie asks Jack: \"Seen the door yet? You will.\"",
+        "6. Jack spots a warped door in a hallway—gone the next day.",
+        "7. Walter silently watches Jack; leaves a note: \"Don’t go in. I did.\"",
+        "8. Jack finds a 1978 photo of himself in Agnes’s scrapbook.",
+        "9. Evie says past workers disappeared—and no one looked for them.",
+        "10. Jack opens the door—it leads to his childhood home.",
+        "11. He relives joyful memories, then darker ones he buried.",
+        "12. The unit begins morphing to resemble his past.",
+        "13. Bernie warns: \"The door lets you out when it wants.\"",
+        "14. Danny plays a tape—whispers say Jack’s name and plead for help.",
+        "15. Jack finds Art whispering into a hallway: \"Cracks remember.\"",
+        "16. Jack sees Walter enter the door and vanish—no one notices.",
+        "17. Agnes shows Jack a page of him elderly, labeled \"Resident, Apt. 306.\"",
+        "18. Jack confronts Art, who admits: \"Dad said never ask.\"",
+        "19. The door starts appearing in impossible places.",
+        "20. Jack enters again—sees himself aged, vacant-eyed.",
+        "21. He tries to leave, but all exits loop back.",
+        "22. Evie stares at her watch, whispers, \"Time’s up.\"",
+        "23. Jack smashes the door—it bleeds sawdust and reforms.",
+        "24. Jack disappears.",
+        "25. A new carpenter arrives for the same job.",
+        "26. Art hands him the right key without hesitation.",
+        "27. An old man named Jack now lives in the building—silent, staring at a blank wall."
+    ],
+    "thematic_notes": [
+        "Memory & Identity",
+        "Cycles & Repetition",
+        "Confronting the Self",
+        "Doors, Thresholds & Choice",
+        "Time, Regret & Impermanence",
+        "Anonymity & Erasure",
+        "The Unseen Lives of the Elderly",
+        "Death, Legacy & the Unfinished"
+    ],
+    "continuity_checklist": [],
+    "special_instructions": "",
+    "style_preset_name": "Stephen King (modern thriller)"
+}

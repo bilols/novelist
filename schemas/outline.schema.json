@@ -3,37 +3,126 @@
   "$id": "outline.schema.json",
   "title": "NovelOutline",
   "type": "object",
-  "required": ["title", "genre", "target_length", "chapters"],
+
+  "required": [
+    "title",
+    "author",
+    "revision_date",
+    "premise",
+    "genre",
+    "novel_target_words",
+    "chapters"
+  ],
+
   "properties": {
-    "title": { "type": "string" },
+    "title":  { "type": "string" },
+    "author": { "type": "string" },
+    "revision_date": { "type": "string", "format": "date-time" },
+    "premise": { "type": "string" },
     "genre": { "type": "string" },
-    "target_length": { "type": "integer", "minimum": 1000 },
+    "novel_target_words": { "type": "integer", "minimum": 1000 },
+
+    "main_characters": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/character" }
+    },
+
+    "timeline_key_events": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "thematic_notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "continuity_checklist": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "special_instructions": { "type": "string" },
+
+    "prologue": { "$ref": "#/definitions/prologue" },
+    "epilogue": { "$ref": "#/definitions/epilogue" },
+
     "chapters": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["number", "title", "beats"],
-        "properties": {
-          "number": { "type": "integer", "minimum": 1 },
-          "title": { "type": "string" },
-          "beats": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["summary"],
-              "properties": {
-                "summary": { "type": "string" },
-                "target_words": { "type": "integer", "minimum": 50 },
-                "sub_plots": {
-                  "type": "array",
-                  "items": { "type": "string" }
-                }
-              }
-            }
-          }
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/chapterCore" }
+    }
+  },
+
+  "definitions": {
+
+    "character": {
+      "type": "object",
+      "required": ["name", "role"],
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "traits": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "arc": { "type": "string" }
+      }
+    },
+
+    "beat": {
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary":      { "type": "string" },
+        "target_words": { "type": "integer", "minimum": 50 },
+        "sub_plots": {
+          "type": "array",
+          "items": { "type": "string" }
         }
       }
     },
-    "metadata": { "type": "object" }
+
+    "chapterCore": {
+      "type": "object",
+      "required": ["num", "title", "pov", "beats"],
+      "properties": {
+        "num":   { "type": "integer", "minimum": 1 },
+        "title": { "type": "string" },
+        "pov":   { "type": "string" },
+        "beats": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/beat" }
+        }
+      }
+    },
+    
+    "prologue": {
+      "type": "object",
+      "required": ["num", "title", "pov", "beats"],
+      "properties": {
+        "num":   { "type": "integer", "minimum": 0 },   
+        "title": { "type": "string" },
+        "pov":   { "type": "string" },
+        "beats": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/beat" }
+        }
+      }
+    },
+
+    "epilogue": {
+      "type": "object",
+      "required": ["num", "title", "pov", "beats"],
+      "properties": {
+        "num":   { "type": "integer", "minimum": 0 },   
+        "title": { "type": "string" },
+        "pov":   { "type": "string" },
+        "beats": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/beat" }
+        }
+      }
+    }
   }
 }

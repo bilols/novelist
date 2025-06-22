@@ -1,134 +1,69 @@
 """
-novelist_cli.generators.prompt_builders
-
-Builds `messages` lists for outline and style-guide generation, forcing
-OpenAI to return exactly one JSON object via
-`response_format={"type":"json_object"}`.
+Prompt builders v4 (unchanged)
+• Pre-allocates every chapter placeholder.
+• Model may write only <string> fields.
+• Optional prologue / epilogue.
 """
 
 from __future__ import annotations
-
-from math import ceil
+import json, math
 from textwrap import dedent
 from typing import Any, Dict, List
 
 
-# ───────────────────────── helpers ──────────────────────────
-def _words_per_beat(total: int, chapters: int, beats: int) -> int:
-    """Round up to avoid under-allocation."""
-    return ceil(total / chapters / beats)
+def _words_per_beat(total: int, chaps: int, beats: int) -> int:
+    return math.ceil(total / chaps / beats)
 
 
-def _outline_stub(opts: Dict[str, Any]) -> str:
-    """
-    Skeleton containing two chapters, each with the exact
-    beats_per_chapter beats.  All JSON braces are **doubled** so the
-    later .format() call (for {num}) ignores them.
-    """
-    wpb = _words_per_beat(
-        opts["target_length"], opts["chapter_count"], opts["beats_per_chapter"]
-    )
-    sub_plots = '["<string>"]' if opts["depth_enabled"] else "[]"
+def _beats_block(beats: int, tw: int, depth: bool) -> str:
+    sub = '["<string>"]' if depth else "[]"
+    tpl = '{{ "summary": "<string>", "target_words": %d, "sub_plots": %s }}' % (tw, sub)
+    return ",\n        ".join([tpl] * beats)
 
-    # build one beat (percent-formatting keeps doubled braces intact)
-    beat_tpl = '{{ "summary": "<string>", "target_words": %d, "sub_plots": %s }}' % (
-        wpb,
-        sub_plots,
-    )
-    beats_block = ",\n        ".join([beat_tpl] * opts["beats_per_chapter"])
 
-    chapter_block = (
-        "    {{\n"
-        '      "number": {num},\n'
-        '      "title": "<string>",\n'
-        '      "beats": [\n'
-        f"        {beats_block}\n"
-        "      ]\n"
-        "    }}"
-    )
-
-    chapters_stub = ",\n".join(
-        [chapter_block.format(num=1), chapter_block.format(num=2)]
-    )
-
+def _chapter_stub(num: int, bb: str) -> str:
     return (
-        "{\n"
-        '  "title": "<string>",\n'
-        '  "genre": "<string>",\n'
-        f'  "target_length": {opts["target_length"]},\n'
-        '  "chapters": [\n'
-        f"{chapters_stub}\n"
-        "  ],\n"
-        '  "metadata": {}\n'
-        "}"
-    ).strip()
+        "    {\n"
+        f'      "num": {num},\n'
+        '      "title": "<string>",\n'
+        '      "pov": "<string>",\n'
+        '      "beats": [\n'
+        f"        {bb}\n"
+        "      ]\n"
+        "    }"
+    )
 
 
-_STYLE_STUB = """
-{
-  "voice": "<string>",
-  "tense": "<past|present>",
-  "sentence_length": "<short|moderate|long>",
-  "lexical_density": "<low|moderate|high>",
-  "tone": "<string>",
-  "banned_cliches": ["<string>"],
-  "rules": { "<guideline>": "<example or explanation>" }
-}
-""".strip()
+def build_chapter_prompt(meta: Dict[str, Any], cfg: Dict[str, Any]) -> List[Dict[str, Any]]:
+    wpb = _words_per_beat(meta["novel_target_words"], cfg["chapter_count"], cfg["beats_per_chapter"])
+    bb  = _beats_block(cfg["beats_per_chapter"], wpb, cfg["depth_enabled"])
 
+    chapters = ",\n".join([_chapter_stub(i, bb) for i in range(1, cfg["chapter_count"] + 1)])
+    stub = "{\n  \"chapters\": [\n" + chapters + "\n  ]"
+    if cfg["include_prologue"]:
+        stub += ",\n  \"prologue\": " + _chapter_stub(0, bb)
+    if cfg["include_epilogue"]:
+        stub += ",\n  \"epilogue\": " + _chapter_stub(999, bb)
+    stub += "\n}"
 
-# ───────────────────── outline prompt ──────────────────────
-def build_outline_prompt(opts: Dict[str, Any]) -> List[Dict[str, Any]]:
     sys_msg = dedent(
         f"""
-        You are NovelOutliner-GPT.
-        • Produce **exactly {opts['chapter_count']} chapters**.
-        • Each chapter must contain **exactly {opts['beats_per_chapter']} beats**.
-        • If depth_enabled=true, every beats[*].sub_plots list must contain ≥1 string.
-        • Premise: {opts['premise']}
-        • MC archetype: {opts['mc_archetype']}
-        Return ONE JSON object – no wrapper keys.
+        You are ChapterArchitect-GPT.
+        * FROZEN_METADATA is read-only.
+        * Replace <string> placeholders ONLY.
+        * Do not change array lengths: {cfg['chapter_count']} chapters, {cfg['beats_per_chapter']} beats each.
+        * If depth_enabled=true every beats[*].sub_plots must hold ≥1 string.
         """
     ).strip()
-
-    if opts.get("famous_style"):
-        sys_msg += f"\nEmulate subtle hallmarks of {opts['famous_style']}."
 
     user_msg = (
-        "Fill the placeholders and repeat the chapter pattern until the array "
-        f'length equals {opts["chapter_count"]}:\n{_outline_stub(opts)}'
+        "FROZEN_METADATA:\n"
+        + json.dumps(meta, ensure_ascii=False, indent=2)
+        + "\n\nWRITABLE_STUB:\n"
+        + stub
     )
 
     return [
         {"role": "system", "content": sys_msg},
-        {
-            "role": "user",
-            "content": user_msg,
-            "response_format": {"type": "json_object"},
-        },
-    ]
-
-
-# ────────────────── style-guide prompt ────────────────────
-def build_styleguide_prompt(opts: Dict[str, Any]) -> List[Dict[str, Any]]:
-    sys_msg = dedent(
-        f"""
-        You are StyleGuide-GPT. Replace ONLY the placeholders; keep keys identical.
-        voice={opts['voice']}; tense={opts['tense']};
-        sentence_length={opts['sentence_length']}; lexical_density={opts['lexical_density']}.
-        """
-    ).strip()
-
-    if opts.get("famous_style"):
-        sys_msg += f"\nBlend subtle traits of {opts['famous_style']}."
-
-    user_msg = "Fill this JSON object:\n" + _STYLE_STUB
-
-    return [
-        {"role": "system", "content": sys_msg},
-        {
-            "role": "user",
-            "content": user_msg,
-            "response_format": {"type": "json_object"},
-        },
+        {"role": "user",   "content": user_msg, "response_format": {"type": "json_object"}},
     ]

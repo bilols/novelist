@@ -5,7 +5,10 @@ description = "CLI & web wizard for AI-assisted novel drafting"
 authors = ["Bill Olson <bilols@hotmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "novelist_cli" }]
+packages = [
+  { include = "novelist_cli" },
+  { include = "draft_driver" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -25,3 +28,5 @@ jsonschema = "^4.24.0"
 
 [tool.poetry.scripts] 
 novelist = "novelist_cli.__main__:app" 
+novelist-draft = "draft_driver.draft_driver:main"
+novelist-build = "draft_driver.build_manuscript:main"

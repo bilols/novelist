@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chapters.schema.json",
+  "title": "ChaptersBlock",
+  "type": "object",
+  "required": ["chapters"],
+  "properties": {
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/chapterCore" }
+    },
+    "prologue": { "$ref": "#/definitions/prologue" },
+    "epilogue": { "$ref": "#/definitions/epilogue" }
+  },
+  "definitions": {
+    "beat": {
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary": { "type": "string" },
+        "target_words": { "type": "integer", "minimum": 50 },
+        "sub_plots": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "chapterCore": {
+      "type": "object",
+      "required": ["num", "title", "pov", "beats"],
+      "properties": {
+        "num":   { "type": "integer", "minimum": 1 },
+        "title": { "type": "string" },
+        "pov":   { "type": "string" },
+        "beats": { "type": "array", "items": { "$ref": "#/definitions/beat" } }
+      }
+    },
+    "prologue": {
+      "allOf": [
+        { "$ref": "#/definitions/chapterCore" },
+        { "properties": { "num": { "minimum": 0 } } }
+      ]
+    },
+    "epilogue": {
+      "allOf": [
+        { "$ref": "#/definitions/chapterCore" },
+        { "properties": { "num": { "minimum": 0 } } }
+      ]
+    }
+  }
+}
