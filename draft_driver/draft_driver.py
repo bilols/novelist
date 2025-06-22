@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 draft_driver.py – generate prologue, chapters & epilogue
-v2.1.2 • don't rewrite outline unless encoding actually fixed
+v2.2 • all outputs now live under ./artifacts/
 """
 
 from __future__ import annotations
@@ -23,12 +23,8 @@ from .logconf import init
 from . import utils, summarizer
 
 
-# ───────────────────────── helpers ──────────────────────────
+# ── encoding‑robust JSON reader (only rewrites when fixed) ─────────────────
 def _read_json(path: pathlib.Path) -> Dict[str, Any]:
-    """
-    Read JSON regardless of encoding; rewrite as UTF‑8 **only if** encoding
-    or BOM had to be fixed.  Prevents needless line‑ending churn.
-    """
     encodings = [
         "utf-8",
         "utf-8-sig",
@@ -40,28 +36,28 @@ def _read_json(path: pathlib.Path) -> Dict[str, Any]:
     for enc in encodings:
         try:
             txt = raw.decode(enc)
-            json.loads(txt)             # validate
+            json.loads(txt)
             break
         except (UnicodeDecodeError, json.JSONDecodeError):
             txt = None
-    else:                               # fallback
+    else:
         txt = raw.decode("latin-1", errors="ignore")
-        logging.warning("%s decoded with latin-1 + ignore.", path.name)
+        logging.warning("%s decoded with latin‑1 + ignore.", path.name)
 
     had_bom = txt.startswith(BOM_UTF8.decode())
     if had_bom:
         txt = txt.lstrip(BOM_UTF8.decode())
 
-    # rewrite only if we really changed something
     if enc.lower() not in {"utf-8", "utf-8-sig"} or had_bom:
         path.write_text(txt, "utf-8")
-        logging.info("Re‑saved %s as UTF‑8 (orig enc: %s, bom=%s)",
-                     path.name, enc, had_bom)
+        logging.info("Re‑saved %s as UTF‑8 (orig enc: %s, bom=%s)", path.name, enc, had_bom)
 
     return json.loads(txt)
 
 
-PIECE_RE   = re.compile(r"\[C(\d{2})-P\d]")
+# ── tiny helpers ───────────────────────────────────────────────────────────
+PIECE_RE = re.compile(r"\[C(\d{2})-P\d]")
+
 remove_markers = lambda t: PIECE_RE.sub("", t).strip()
 ends_clean     = lambda t: t.rstrip().endswith((".", "?”", "!”", "\""))
 
@@ -70,7 +66,7 @@ def beat_check(ch: Dict[str, Any]) -> str:
     return "## Beat Checklist\n" + "\n".join("☐ " + bullet(b) for b in ch["beats"])
 
 
-# ───────────────────────── arg‑parser ───────────────────────
+# ── argument parser ────────────────────────────────────────────────────────
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
     p.add_argument("--start", type=int, default=1, help="first chapter number")
@@ -83,7 +79,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return p
 
 
-# ───────────────────────── main pipeline ────────────────────
+# ── main pipeline ──────────────────────────────────────────────────────────
 def main(argv: List[str] | None = None) -> None:
     args = build_arg_parser().parse_args(argv)
     init(args.log_level)
@@ -92,11 +88,11 @@ def main(argv: List[str] | None = None) -> None:
     MODEL = args.model or utils.MODEL_DEFAULT
     logger.info("Using model: %s", MODEL)
 
+    # -------- unified artefact tree ---------------------------------------
     ROOT = pathlib.Path(__file__).resolve().parent
-    ART  = ROOT.parent / "artifacts"
-    OUT  = ROOT.parent / "outputs";  OUT.mkdir(exist_ok=True)
-    CHDIR = OUT / "chapters";   CHDIR.mkdir(exist_ok=True)
-    SUMDIR = OUT / "summaries"; SUMDIR.mkdir(exist_ok=True)
+    ART  = ROOT.parent / "artifacts";  ART.mkdir(exist_ok=True)
+    CHDIR = ART / "chapters";   CHDIR.mkdir(exist_ok=True)
+    SUMDIR = ART / "summaries"; SUMDIR.mkdir(exist_ok=True)
 
     outline = _read_json(ART / "novelist_outline.json")
     style   = _read_json(ART / "novelist_style_guide.json")
@@ -116,7 +112,7 @@ def main(argv: List[str] | None = None) -> None:
 
     prev_summary = "Novel opens here."
 
-    # ── Prologue (optional) ─────────────────────────────────
+    # -------- Prologue (optional) -----------------------------------------
     if "prologue" in outline and not args.epilogue_only:
         pro = outline["prologue"]
         logger.info("=== Prologue ===")
@@ -141,7 +137,7 @@ start with "# Prologue – {pro['title']}",
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # ── Chapter loop ───────────────────────────────────────
+    # -------- Chapter loop -------------------------------------------------
     if args.epilogue_only:
         last = sorted(SUMDIR.glob("ch??.summary.json"))[-1]
         prev_summary = json.loads(last.read_text("utf-8"))["summary"]
@@ -195,7 +191,7 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # ── Epilogue (optional) ────────────────────────────────
+    # -------- Epilogue (optional) -----------------------------------------
     if "epilogue" in outline and (
         args.epilogue_only
         or not args.chapters
@@ -229,6 +225,6 @@ start with "# Epilogue – {epi['title']}",
     logger.info("Draft pipeline finished ✅")
 
 
-# ───────────────────────── entry‑point ─────────────────────
+# ── entry‑point ------------------------------------------------------------
 if __name__ == "__main__":
     main()

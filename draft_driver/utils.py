@@ -11,7 +11,7 @@ import openai, logging, importlib
 logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------
-MODEL_DEFAULT = "gpt-4o-mini"
+MODEL_DEFAULT = "gpt-4o"
 
 CTX_LIMIT = {
     "gpt-3.5-turbo":        16_385,
