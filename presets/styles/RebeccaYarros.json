@@ -1,0 +1,30 @@
+{
+  "name": "Rebecca Yarros (contemporary/fantasy romance)",
+  "voice": "alternating first-person",
+  "tense": "present",
+  "sentence_length": "moderate",
+  "lexical_density": "moderate",
+  "tone": "intense, romantic",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "chapter epigraphs",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "multiple_first_person",
+  "piece_length": 500
+}

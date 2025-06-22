@@ -1,0 +1,30 @@
+{
+  "name": "Kristin Hannah (emotional drama)",
+  "voice": "third-person limited",
+  "tense": "simple past",
+  "sentence_length": "long",
+  "lexical_density": "moderate",
+  "tone": "emotional, poignant",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "letters and diary entries",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "third_person_limited",
+  "piece_length": 500
+}

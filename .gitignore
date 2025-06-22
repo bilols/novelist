@@ -38,6 +38,7 @@ desktop.ini
 
 # ─── Project output ─────────────────────────────────────────────────────
 artifacts/
+draft_driver/outputs/
 
 # ─── Logs & misc ────────────────────────────────────────────────────────
 *.log

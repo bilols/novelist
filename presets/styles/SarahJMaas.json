@@ -1,0 +1,31 @@
+{
+  "name": "Sarah J. Maas (epic fantasy)",
+  "voice": "third-person limited",
+  "tense": "simple past",
+  "sentence_length": "long",
+  "lexical_density": "high",
+  "tone": "epic, dark",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "ancient language",
+        "chapter epigraphs",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "magic spell effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "third_person_limited",
+  "piece_length": 500
+}

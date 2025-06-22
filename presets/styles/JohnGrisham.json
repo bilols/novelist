@@ -1,0 +1,30 @@
+{
+  "name": "John Grisham (legal thriller)",
+  "voice": "third-person limited",
+  "tense": "simple past",
+  "sentence_length": "moderate",
+  "lexical_density": "moderate",
+  "tone": "procedural, tense",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "court citations",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "third_person_limited",
+  "piece_length": 500
+}

@@ -1,0 +1,30 @@
+{
+  "name": "James Patterson (high-velocity thriller)",
+  "voice": "alternating first- and third-person",
+  "tense": "present",
+  "sentence_length": "short",
+  "lexical_density": "low",
+  "tone": "fast-paced, suspenseful",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "text message headers",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "mixed_first_third_person",
+  "piece_length": 500
+}

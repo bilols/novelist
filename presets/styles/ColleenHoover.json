@@ -1,0 +1,31 @@
+{
+  "name": "Colleen Hoover (new-adult romance)",
+  "voice": "first-person",
+  "tense": "present",
+  "sentence_length": "moderate",
+  "lexical_density": "moderate",
+  "tone": "raw, heartfelt",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "text messages",
+        "flashback excerpts",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "first_person",
+  "piece_length": 500
+}

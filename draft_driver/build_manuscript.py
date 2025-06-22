@@ -1,76 +1,85 @@
 #!/usr/bin/env python3
 """
-Assemble manuscript from outputs/chapters/.
-Reads outline from artifacts/ if available, otherwise inputs/.  
-Use --with-digest to append all summaries.
+build_manuscript.py  –  stitch chapter / prologue / epilogue files
+into a single Markdown manuscript.
+
+Designed to be called via the Poetry script:
+  novelist-build = "draft_driver.build_manuscript:main"
 """
 
-import re, sys, json, argparse
-from pathlib import Path
-from . import formatter
+from __future__ import annotations
 
-# ── CLI -------------------------------------------------------------------
-cli = argparse.ArgumentParser()
-cli.add_argument("--with-digest", action="store_true")
-args = cli.parse_args()
+import argparse
+import logging
+import pathlib
+import re
+import shutil
+import sys
+from typing import List
 
-# ── Paths -----------------------------------------------------------------
-ROOT  = Path(__file__).resolve().parents[1]
-ART   = ROOT / "artifacts"
-INP   = ROOT / "inputs"
+from .logconf import init
 
-OUT   = ROOT / "outputs";  OUT.mkdir(exist_ok=True)
+# ────────────────────────────────────────────────────────────────────────────
+ROOT  = pathlib.Path(__file__).resolve().parent
+OUT   = ROOT.parent / "outputs"
 CHDIR = OUT / "chapters"
-SUMDIR= OUT / "summaries"
-FINAL = OUT / "final";     FINAL.mkdir(exist_ok=True)
-DEST  = FINAL / "manuscript.md"
+FINAL = OUT / "final"; FINAL.mkdir(exist_ok=True)
 
-# ── Outline ---------------------------------------------------------------
-outline_path = (ART / "novelist_outline.json") if (ART / "novelist_outline.json").exists() \
-               else (INP / "novelist_outline.json")
-outline = json.loads(outline_path.read_text("utf-8"))
-title   = outline.get("title","Untitled")
-author  = outline.get("author","")
+ORDER_RE = re.compile(r"^# (?:Prologue|Chapter (\d+)|Epilogue)", re.I)
 
-# ── Gather chapters -------------------------------------------------------
-chap_files = sorted(CHDIR.glob("ch??.md"))
-if (CHDIR / "prologue.md").exists():
-    chap_files.insert(0, CHDIR / "prologue.md")
-if (CHDIR / "epilogue.md").exists():
-    chap_files.append(CHDIR / "epilogue.md")
+# ----------------------------------------------------------------------------
+def chapter_sort_key(path: pathlib.Path) -> tuple[int, str]:
+    """Sort Prologue → numeric chapters → Epilogue."""
+    text = path.read_text("utf-8", errors="ignore").splitlines()[0]
+    m = ORDER_RE.match(text.strip())
+    if not m:
+        return (sys.maxsize, str(path))
+    num = m.group(1)
+    if text.lower().startswith("# prologue"):
+        return (0, "")
+    if text.lower().startswith("# epilogue"):
+        return (10_000, "")
+    return (int(num), "")
 
-if not chap_files:
-    sys.exit("❌  No chapter files found in outputs/chapters/")
+# ----------------------------------------------------------------------------
+def build_manuscript(min_chapters: int | None = None) -> pathlib.Path:
+    """Return path of the compiled manuscript."""
+    parts: List[pathlib.Path] = sorted(CHDIR.glob("*.md"), key=chapter_sort_key)
+    if min_chapters and len(parts) < min_chapters:
+        raise RuntimeError(f"Only {len(parts)} chapters present; expected ≥{min_chapters}")
 
-word_re, parts, wc_table, total = re.compile(r"\w+"), [], [], 0
-for fp in chap_files:
-    txt   = fp.read_text("utf-8").strip()
-    words = len(word_re.findall(txt))
-    total += words
-    wc_table.append((fp.stem, words))
-    parts.append(txt)
-    print(f"✓ {fp.name:<17} {words:,} words")
+    manuscript = FINAL / "manuscript.md"
+    with manuscript.open("w", encoding="utf-8") as out:
+        for p in parts:
+            out.write(p.read_text("utf-8"))
+            out.write("\n\n")
 
-# ── Optional digest --------------------------------------------------------
-digest = ""
-if args.with_digest:
-    summaries = []
-    for js in sorted(SUMDIR.glob("*.summary.json")):
-        summaries.append(json.loads(js.read_text("utf-8"))["summary"].strip())
-    digest = "\n\n---\n\n## Digest (all summaries)\n\n" + "\n\n".join(summaries)
+    # Also copy to top‑level convenience location, overwriting silently
+    shutil.copy2(manuscript, OUT / "manuscript.md")
+    return manuscript
 
-# ── Title page & combine ---------------------------------------------------
-title_pg = [
-    f"# {title}",
-    f"**Author:** {author}" if author else "",
-    "",
-    "## Word Counts",
-    *[f"- {stem}: {w:,} words" for stem, w in wc_table],
-    f"\n**Total:** {total:,} words",
-    "\n---\n"
-]
+# ----------------------------------------------------------------------------
+def build_arg_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Concatenate generated .md files into a manuscript.")
+    p.add_argument("--require", type=int, metavar="N",
+                   help="fail if fewer than N chapter files are present")
+    p.add_argument("--log-level", default="INFO")
+    return p
 
-manuscript = "\n".join(title_pg) + ("\n\n***\n\n".join(parts)) + digest + "\n"
-manuscript = formatter.format_text(manuscript)
-DEST.write_text(manuscript, "utf-8")
-print(f"✅  Manuscript created → {DEST}  ({total:,} words)")
+# ----------------------------------------------------------------------------
+def main(argv: List[str] | None = None) -> None:
+    args = build_arg_parser().parse_args(argv)
+    init(args.log_level)
+    logger = logging.getLogger("manuscript_builder")
+
+    try:
+        m_path = build_manuscript(args.require)
+        word_count = len(m_path.read_text("utf-8").split())
+        logger.info("Manuscript created → %s  (%s words)", m_path, f"{word_count:,}")
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Manuscript build failed: %s", exc)
+        sys.exit(1)
+
+# ----------------------------------------------------------------------------
+if __name__ == "__main__":
+    main()

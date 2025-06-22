@@ -1,0 +1,30 @@
+{
+  "name": "Danielle Steel (commercial romance)",
+  "voice": "third-person omniscient",
+  "tense": "simple past",
+  "sentence_length": "long",
+  "lexical_density": "moderate",
+  "tone": "dramatic, sentimental",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "letters",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "third_person_omniscient",
+  "piece_length": 500
+}

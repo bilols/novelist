@@ -1,0 +1,30 @@
+{
+  "name": "Freida McFadden (psychological thriller)",
+  "voice": "alternating first-person",
+  "tense": "present",
+  "sentence_length": "short",
+  "lexical_density": "moderate",
+  "tone": "tense, twisty",
+  "rules": {
+    "formatting": {
+      "bold_allowed": false,
+      "italics_cases": [
+        "inner monologue",
+        "emphasis",
+        "chapter-opening text messages",
+        "titles of works",
+        "foreign words",
+        "words-as-words"
+      ],
+      "double_spacing": false,
+      "all_caps_cases": [
+        "abbreviations",
+        "sound effects",
+        "very loud shouts (sparingly)",
+        "verbatim signage"
+      ]
+    }
+  },
+  "preferred_pov": "multiple_first_person",
+  "piece_length": 500
+}

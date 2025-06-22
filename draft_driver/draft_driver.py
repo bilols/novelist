@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 draft_driver.py – generate prologue, chapters & epilogue
-v2.1 • adds real main() + prologue generation
+v2.1.2 • don't rewrite outline unless encoding actually fixed
 """
 
 from __future__ import annotations
@@ -22,12 +22,13 @@ import openai
 from .logconf import init
 from . import utils, summarizer
 
-# ────────────────────────────────────────────────────────────────────────────
-# ------------------------------ Utilities -----------------------------------
-# ────────────────────────────────────────────────────────────────────────────
+
+# ───────────────────────── helpers ──────────────────────────
 def _read_json(path: pathlib.Path) -> Dict[str, Any]:
-    """Read JSON regardless of encoding; re‑save as UTF‑8."""
-    tried: List[str] = []
+    """
+    Read JSON regardless of encoding; rewrite as UTF‑8 **only if** encoding
+    or BOM had to be fixed.  Prevents needless line‑ending churn.
+    """
     encodings = [
         "utf-8",
         "utf-8-sig",
@@ -36,41 +37,40 @@ def _read_json(path: pathlib.Path) -> Dict[str, Any]:
         "latin-1",
     ]
     raw = path.read_bytes()
-    data: str | None = None
     for enc in encodings:
-        tried.append(enc)
         try:
-            data = raw.decode(enc)
-            json.loads(data)
+            txt = raw.decode(enc)
+            json.loads(txt)             # validate
             break
         except (UnicodeDecodeError, json.JSONDecodeError):
-            data = None
-    if data is None:
-        data = raw.decode("latin-1", errors="ignore")
+            txt = None
+    else:                               # fallback
+        txt = raw.decode("latin-1", errors="ignore")
         logging.warning("%s decoded with latin-1 + ignore.", path.name)
 
-    if data.startswith(BOM_UTF8.decode()):
-        data = data.lstrip(BOM_UTF8.decode())
-    path.write_text(data, "utf-8")
-    if tried[0] != "utf-8":
-        logging.info("Re‑saved %s as UTF‑8 (orig enc: %s)", path.name, tried[-1])
-    return json.loads(data)
+    had_bom = txt.startswith(BOM_UTF8.decode())
+    if had_bom:
+        txt = txt.lstrip(BOM_UTF8.decode())
+
+    # rewrite only if we really changed something
+    if enc.lower() not in {"utf-8", "utf-8-sig"} or had_bom:
+        path.write_text(txt, "utf-8")
+        logging.info("Re‑saved %s as UTF‑8 (orig enc: %s, bom=%s)",
+                     path.name, enc, had_bom)
+
+    return json.loads(txt)
 
 
-PIECE_RE = re.compile(r"\[C(\d{2})-P\d]")
-
-def remove_markers(t: str) -> str:
-    return PIECE_RE.sub("", t).strip()
-
-def ends_clean(t: str) -> bool:
-    return t.rstrip().endswith((".", "?”", "!”", "\""))
+PIECE_RE   = re.compile(r"\[C(\d{2})-P\d]")
+remove_markers = lambda t: PIECE_RE.sub("", t).strip()
+ends_clean     = lambda t: t.rstrip().endswith((".", "?”", "!”", "\""))
 
 def beat_check(ch: Dict[str, Any]) -> str:
-    """beats may be list[str] or list[dict] – always extract summary text."""
     bullet = lambda b: b if isinstance(b, str) else b.get("summary", "")
     return "## Beat Checklist\n" + "\n".join("☐ " + bullet(b) for b in ch["beats"])
 
-# ────────────────────────────────────────────────────────────────────────────
+
+# ───────────────────────── arg‑parser ───────────────────────
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
     p.add_argument("--start", type=int, default=1, help="first chapter number")
@@ -82,53 +82,44 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--log-level", default="INFO")
     return p
 
-# ────────────────────────────────────────────────────────────────────────────
+
+# ───────────────────────── main pipeline ────────────────────
 def main(argv: List[str] | None = None) -> None:
-    # -------- CLI -----------------------------------------------------------
     args = build_arg_parser().parse_args(argv)
     init(args.log_level)
     logger = logging.getLogger("draft_driver")
 
-    # -------- model ---------------------------------------------------------
     MODEL = args.model or utils.MODEL_DEFAULT
     logger.info("Using model: %s", MODEL)
 
-    # -------- paths ---------------------------------------------------------
     ROOT = pathlib.Path(__file__).resolve().parent
     ART  = ROOT.parent / "artifacts"
     OUT  = ROOT.parent / "outputs";  OUT.mkdir(exist_ok=True)
     CHDIR = OUT / "chapters";   CHDIR.mkdir(exist_ok=True)
     SUMDIR = OUT / "summaries"; SUMDIR.mkdir(exist_ok=True)
 
-    outline_path = ART / "novelist_outline.json"
-    style_path   = ART / "novelist_style_guide.json"
+    outline = _read_json(ART / "novelist_outline.json")
+    style   = _read_json(ART / "novelist_style_guide.json")
+    STYLE_JSON = json.dumps(style, ensure_ascii=False, indent=2)
 
-    # -------- OpenAI --------------------------------------------------------
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY") or \
         logger.critical("Missing OPENAI_API_KEY") or exit()
-
-    # -------- load outline/style -------------------------------------------
-    outline = _read_json(outline_path)
-    style   = _read_json(style_path)
-    STYLE_JSON = json.dumps(style, ensure_ascii=False, indent=2)
 
     chapters = sorted(outline["chapters"], key=lambda c: c["num"])
     if args.chapters:
         chapters = chapters[: args.chapters]
 
-    # -------- helpers -------------------------------------------------------
     def write(name: str, text: str):
         CHDIR.joinpath(name).write_text(text, "utf-8")
         logger.info("%s saved (%d words)", name, len(text.split()))
 
     prev_summary = "Novel opens here."
 
-    # -------- optional PROLOGUE --------------------------------------------
+    # ── Prologue (optional) ─────────────────────────────────
     if "prologue" in outline and not args.epilogue_only:
         pro = outline["prologue"]
         logger.info("=== Prologue ===")
-
         msgs = [
             {"role": "system", "content": STYLE_JSON},
             {"role": "system", "content": "PROLOGUE_OUTLINE:\n" + json.dumps(pro, indent=2)},
@@ -138,22 +129,19 @@ start with "# Prologue – {pro['title']}",
 1 000–1 200 words, cover all beats, no meta commentary.
 """},
         ]
-
         draft = utils.chat(MODEL, msgs, 4000)
         for _ in range(3):
             if ends_clean(draft):
                 break
             draft += " " + utils.chat(MODEL, [{"role": "user", "content": "Finish the scene."}], 400)
-
         draft = remove_markers(draft)
         write("prologue.md", draft)
-
         prev_summary, _ = summarizer.summarise_and_extract(draft)
         SUMDIR.joinpath("prologue.summary.json").write_text(
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # -------- chapter loop --------------------------------------------------
+    # ── Chapter loop ───────────────────────────────────────
     if args.epilogue_only:
         last = sorted(SUMDIR.glob("ch??.summary.json"))[-1]
         prev_summary = json.loads(last.read_text("utf-8"))["summary"]
@@ -185,7 +173,6 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
 
         draft = utils.chat(MODEL, messages, 6000)
 
-        # top‑off to min words
         while len(draft.split()) < args.min_words:
             tail = " ".join(draft.split()[-120:])
             draft += " " + utils.chat(
@@ -195,7 +182,6 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
                 1200,
             )
 
-        # finish last sentence
         for _ in range(3):
             if ends_clean(draft):
                 break
@@ -209,7 +195,7 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # -------- optional EPILOGUE -------------------------------------------
+    # ── Epilogue (optional) ────────────────────────────────
     if "epilogue" in outline and (
         args.epilogue_only
         or not args.chapters
@@ -217,7 +203,6 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
     ):
         epi = outline["epilogue"]
         logger.info("=== Epilogue ===")
-
         msgs = [
             {"role": "system", "content": STYLE_JSON},
             {"role": "system", "content": "EPILOGUE_OUTLINE:\n" + json.dumps(epi, indent=2)},
@@ -228,7 +213,6 @@ start with "# Epilogue – {epi['title']}",
 1 000–1 200 words, cover all beats, no meta commentary.
 """},
         ]
-
         draft = utils.chat(MODEL, msgs, 4000)
         for _ in range(3):
             if ends_clean(draft):
@@ -237,7 +221,6 @@ start with "# Epilogue – {epi['title']}",
 
         draft = remove_markers(draft)
         write("epilogue.md", draft)
-
         epi_sum, _ = summarizer.summarise_and_extract(draft)
         SUMDIR.joinpath("epilogue.summary.json").write_text(
             json.dumps({"summary": epi_sum}, indent=2), "utf-8"
@@ -245,6 +228,7 @@ start with "# Epilogue – {epi['title']}",
 
     logger.info("Draft pipeline finished ✅")
 
-# ────────────────────────────────────────────────────────────────────────────
-if __name__ == "__main__":          # allow “python -m draft_driver”
+
+# ───────────────────────── entry‑point ─────────────────────
+if __name__ == "__main__":
     main()
