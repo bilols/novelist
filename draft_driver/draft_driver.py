@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """
-draft_driver.py – generate prologue, chapters & epilogue
-v2.2 • all outputs now live under ./artifacts/
+draft_driver.py – generate prologue, chapters, and epilogue.
+
+v3.1
+* Removes all FACTS handling.
+* Uses summarizer.summarise() instead of summarise_and_extract().
+* Retains run‑metadata capture and model tags in headings.
 """
 
 from __future__ import annotations
@@ -22,8 +26,8 @@ import openai
 from .logconf import init
 from . import utils, summarizer
 
-
-# ── encoding‑robust JSON reader (only rewrites when fixed) ─────────────────
+# ════════════════════════════════════════════════════════════════════════
+# tolerant JSON loader (repairs encoding problems) -----------------------
 def _read_json(path: pathlib.Path) -> Dict[str, Any]:
     encodings = [
         "utf-8",
@@ -50,12 +54,12 @@ def _read_json(path: pathlib.Path) -> Dict[str, Any]:
 
     if enc.lower() not in {"utf-8", "utf-8-sig"} or had_bom:
         path.write_text(txt, "utf-8")
-        logging.info("Re‑saved %s as UTF‑8 (orig enc: %s, bom=%s)", path.name, enc, had_bom)
+        logging.info("Re‑saved %s as UTF‑8 (orig enc=%s bom=%s)", path.name, enc, had_bom)
 
     return json.loads(txt)
 
 
-# ── tiny helpers ───────────────────────────────────────────────────────────
+# ── helpers --------------------------------------------------------------
 PIECE_RE = re.compile(r"\[C(\d{2})-P\d]")
 
 remove_markers = lambda t: PIECE_RE.sub("", t).strip()
@@ -66,11 +70,11 @@ def beat_check(ch: Dict[str, Any]) -> str:
     return "## Beat Checklist\n" + "\n".join("☐ " + bullet(b) for b in ch["beats"])
 
 
-# ── argument parser ────────────────────────────────────────────────────────
+# ── CLI ------------------------------------------------------------------
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
-    p.add_argument("--start", type=int, default=1, help="first chapter number")
-    p.add_argument("--chapters", type=int, help="limit chapters")
+    p.add_argument("--start", type=int, default=1, help="first chapter number drafted")
+    p.add_argument("--chapters", type=int, help="limit chapters drafted")
     p.add_argument("--min-words", type=int, default=2200)
     p.add_argument("--pieces", type=int, default=8)
     p.add_argument("--epilogue-only", action="store_true")
@@ -79,7 +83,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return p
 
 
-# ── main pipeline ──────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════
 def main(argv: List[str] | None = None) -> None:
     args = build_arg_parser().parse_args(argv)
     init(args.log_level)
@@ -88,7 +92,7 @@ def main(argv: List[str] | None = None) -> None:
     MODEL = args.model or utils.MODEL_DEFAULT
     logger.info("Using model: %s", MODEL)
 
-    # -------- unified artefact tree ---------------------------------------
+    # -------- artefact tree ----------------------------------------------
     ROOT = pathlib.Path(__file__).resolve().parent
     ART  = ROOT.parent / "artifacts";  ART.mkdir(exist_ok=True)
     CHDIR = ART / "chapters";   CHDIR.mkdir(exist_ok=True)
@@ -106,13 +110,46 @@ def main(argv: List[str] | None = None) -> None:
     if args.chapters:
         chapters = chapters[: args.chapters]
 
-    def write(name: str, text: str):
-        CHDIR.joinpath(name).write_text(text, "utf-8")
+    # -------- run‑metadata container -------------------------------------
+    run_meta: Dict[str, Any] = {
+        "book_title": outline.get("title", "Untitled"),
+        "author_name": outline.get("author", "Unknown Author"),
+        "model": MODEL,
+        "parts": []           # one dict per generated part
+    }
+
+    def _add_meta(path: pathlib.Path, part_type: str,
+                  title: str, num: int | None = None) -> None:
+        run_meta["parts"].append({
+            "file": path.name,
+            "type": part_type,
+            "title": title,
+            "model": MODEL,
+            "num": num,
+            "word_count": len(path.read_text('utf-8').split())
+        })
+
+    # -------- heading tag helper -----------------------------------------
+    def tag_heading(text: str) -> str:
+        """Append ‘ (MODEL)’ to the first Markdown heading of a chapter."""
+        lines = text.splitlines()
+        if lines and lines[0].lstrip().startswith("# "):
+            lines[0] = lines[0].rstrip() + f" ({MODEL})"
+        return "\n".join(lines)
+
+    # -------- write helper -----------------------------------------------
+    def write(name: str, text: str,
+              part_type: str,
+              title: str,
+              num: int | None = None) -> None:
+        path = CHDIR / name
+        path.write_text(text, "utf-8")
+        _add_meta(path, part_type, title, num)
         logger.info("%s saved (%d words)", name, len(text.split()))
 
     prev_summary = "Novel opens here."
 
-    # -------- Prologue (optional) -----------------------------------------
+    # --------------------------------------------------------------------- Prologue
     if "prologue" in outline and not args.epilogue_only:
         pro = outline["prologue"]
         logger.info("=== Prologue ===")
@@ -130,14 +167,18 @@ start with "# Prologue – {pro['title']}",
             if ends_clean(draft):
                 break
             draft += " " + utils.chat(MODEL, [{"role": "user", "content": "Finish the scene."}], 400)
-        draft = remove_markers(draft)
-        write("prologue.md", draft)
-        prev_summary, _ = summarizer.summarise_and_extract(draft)
-        SUMDIR.joinpath("prologue.summary.json").write_text(
+
+        draft = tag_heading(remove_markers(draft))
+        write("prologue.md", draft,
+              part_type="prologue",
+              title=f"Prologue – {pro['title']}")
+
+        prev_summary = summarizer.summarise(draft)
+        (SUMDIR / "prologue.summary.json").write_text(
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # -------- Chapter loop -------------------------------------------------
+    # --------------------------------------------------------------------- Chapter loop
     if args.epilogue_only:
         last = sorted(SUMDIR.glob("ch??.summary.json"))[-1]
         prev_summary = json.loads(last.read_text("utf-8"))["summary"]
@@ -183,15 +224,18 @@ Replace ☒ with ✔ when a beat is fulfilled.  No meta commentary.
                 break
             draft += " " + utils.chat(MODEL, [{"role": "user", "content": "Finish the sentence."}], 400)
 
-        draft = remove_markers(draft)
-        write(f"ch{ch['num']:02d}.md", draft)
+        draft = tag_heading(remove_markers(draft))
+        write(f"ch{ch['num']:02d}.md", draft,
+              part_type="chapter",
+              title=f"Chapter {ch['num']:02d} – {ch['title']}",
+              num=ch["num"])
 
-        prev_summary, _ = summarizer.summarise_and_extract(draft)
-        SUMDIR.joinpath(f"ch{ch['num']:02d}.summary.json").write_text(
+        prev_summary = summarizer.summarise(draft)
+        (SUMDIR / f"ch{ch['num']:02d}.summary.json").write_text(
             json.dumps({"summary": prev_summary}, indent=2), "utf-8"
         )
 
-    # -------- Epilogue (optional) -----------------------------------------
+    # --------------------------------------------------------------------- Epilogue
     if "epilogue" in outline and (
         args.epilogue_only
         or not args.chapters
@@ -215,16 +259,24 @@ start with "# Epilogue – {epi['title']}",
                 break
             draft += " " + utils.chat(MODEL, [{"role": "user", "content": "Finish the scene."}], 400)
 
-        draft = remove_markers(draft)
-        write("epilogue.md", draft)
-        epi_sum, _ = summarizer.summarise_and_extract(draft)
-        SUMDIR.joinpath("epilogue.summary.json").write_text(
+        draft = tag_heading(remove_markers(draft))
+        write("epilogue.md", draft,
+              part_type="epilogue",
+              title=f"Epilogue – {epi['title']}")
+
+        epi_sum = summarizer.summarise(draft)
+        (SUMDIR / "epilogue.summary.json").write_text(
             json.dumps({"summary": epi_sum}, indent=2), "utf-8"
         )
 
     logger.info("Draft pipeline finished ✅")
 
+    # --------------------------------------------------------------------- save run meta
+    meta_path = ART / "draft_stats.json"
+    meta_path.write_text(json.dumps(run_meta, indent=2, ensure_ascii=False), "utf-8")
+    logger.info("Saved run metadata → %s", meta_path)
 
-# ── entry‑point ------------------------------------------------------------
+
+# ── entry point ----------------------------------------------------------
 if __name__ == "__main__":
     main()

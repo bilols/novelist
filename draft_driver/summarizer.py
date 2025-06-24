@@ -1,74 +1,54 @@
-# engine/summarizer.py
+#!/usr/bin/env python3
 """
-Summariser that returns (summary_text, facts_dict).
+summarizer.py  – returns a concise prose summary of a chapter.
 
-FACTS fenced block schema:
-{
-  "characters_added":   ["Name"],
-  "characters_updated": { "Name": {"status":"alive"} },
-  "locations_added":    ["Place"],
-  "threads_added":      [],
-  "threads_resolved":   []
-}
+The former FACTS‑tracking block has been removed.  The public API is now:
+
+    summary: str = summarizer.summarise(chapter_text, max_words=150)
+
+Nothing else is returned.
 """
 
-import json, textwrap, re, logging, openai
+from __future__ import annotations
+
+import logging
+import textwrap
+
 from .utils import chat, MODEL_DEFAULT
 
 logger = logging.getLogger(__name__)
 
-FACT_RE = re.compile(r"```FACTS\s*(\{.*?})\s*```", re.S)
 
-def summarise_and_extract(chapter_text: str, max_words: int = 150):
-    """Return (summary_string, facts_dict). facts_dict may be {} on failure."""
-    prompt = textwrap.dedent(f"""
-        Summarise the chapter in 120-{max_words} words.
-        Then append a JSON object that lists ONLY new or updated facts,
-        using this exact fenced format:
+def summarise(chapter_text: str, max_words: int = 150) -> str:
+    """
+    Summarise *chapter_text* in ≤ *max_words* words.
 
-        ```FACTS
-        {{
-          "characters_added":   [],
-          "characters_updated": {{
-            "Caleb Langtry": {{"status":"alive"}}
-          }},
-          "locations_added":    [],
-          "threads_added":      [],
-          "threads_resolved":   []
-        }}
-        ```
+    Returns
+    -------
+    str
+        Pure prose summary with no lists, JSON, or code fences.
+    """
+    prompt = textwrap.dedent(
+        f"""
+        Summarise the chapter in 120‑{max_words} words.
+        Return ONLY the prose summary.  Do not add lists, markdown,
+        or any metadata – just narrative sentences.
+        """
+    ).strip()
 
-        Return the prose summary, a blank line, then the ```FACTS block.
-    """)
-
-    raw = chat(
+    summary = chat(
         MODEL_DEFAULT,
         [
             {"role": "user", "content": prompt},
             {"role": "user", "content": chapter_text},
         ],
-        900,
+        requested_tokens=700,
     )
 
-    m = FACT_RE.search(raw)
-    if not m:
-        logger.error("FACTS block missing; returning empty facts.")
-        summary = raw.strip()
-        facts   = {}
-    else:
-        summary = raw[: m.start()].strip()
-        try:
-            facts = json.loads(m.group(1))
-        except json.JSONDecodeError as e:
-            logger.error("Malformed FACTS JSON: %s", e)
-            facts = {}
-
-    # Hard-trim summary to max_words
+    # hard‑trim in case the model over‑shoots
     words = summary.split()
     if len(words) > max_words:
         summary = " ".join(words[:max_words])
 
-    logger.info("Summary %d words | FACT keys: %d",
-                len(summary.split()), len(facts))
-
-    return summary, facts
+    logger.info("Summarised to %d words", len(summary.split()))
+    return summary

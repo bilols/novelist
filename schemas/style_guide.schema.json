@@ -26,7 +26,7 @@
         "present progressive"
       ]
     },
-    "sentence_length": { "type": "string", "enum": ["short", "moderate", "long"] },
+    "sentence_length": { "type": "string", "enum": ["short", "moderate", "long, variable"] },
     "lexical_density": { "type": "string", "enum": ["low", "moderate", "high"] },
     "tone":             { "type": "string" },
 

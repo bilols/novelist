@@ -1,0 +1,127 @@
+{
+    "title": "The Quiet Between Us",
+    "author": "Ward McCrea",
+    "premise": "Ava Winters is a 27-year-old speech-language pathologist at a rehabilitation hospital in Austin, Texas. Two years ago, her fiancé was killed by a drunk driver. Since then, Ava has lived behind a wall of routine, helping others find their voices while refusing to speak of her own grief. When Caleb Hart, a decorated combat photojournalist, is admitted after a traumatic brain injury leaves him with severe aphasia, Ava is assigned to his case. Angry and isolated, Caleb refuses help—until Ava breaks through, not with words, but with silence, patience, and presence. As Caleb relearns language, a tentative connection forms between them. Through shared vulnerability, they begin to heal. But Caleb is haunted by a past assignment in Syria—photos he never published, and a friend he couldn’t save. Ava, too, must confront her need to control every outcome, and the guilt she carries for surviving what her fiancé didn’t. Their relationship grows slowly—built not on romance, but on trust, humor, and quiet resilience. And when Caleb finally finds the words he’s been searching for, Ava must decide whether she’s ready to believe in love again—not the perfect kind, but the kind that stays. Sometimes, love doesn’t come in a rush. Sometimes, it comes in the quiet between two people learning how to live again.",
+    "genre": "new-adult romance",
+    "novel_target_words": 90000,
+    "chapters": 50,
+    "beats_per_chapter": 4,
+    "depth_enabled": true,
+    "include_prologue": true,
+    "include_epilogue": true,
+    "main_characters": [
+        {
+            "name": "Ava Winters",
+            "role": "Protagonist, speech-language pathologist",
+            "traits": [
+                "empathetic",
+                "methodical",
+                "guarded"
+            ],
+            "arc": "Learns to let go of guilt, open herself to love again, and accept that healing doesn’t require forgetting the past"
+        },
+        {
+            "name": "Caleb Hart",
+            "role": "Male lead, combat photojournalist turned patient",
+            "traits": [
+                "stubborn",
+                "observant",
+                "emotionally wounded"
+            ],
+            "arc": "Rediscovers his voice—literally and emotionally—by confronting past trauma and allowing himself to be loved"
+        },
+        {
+            "name": "Maya Brennan",
+            "role": "Ava’s best friend and roommate",
+            "traits": [
+                "loyal",
+                "sarcastic",
+                "intuitive"
+            ],
+            "arc": "Moves from being Ava’s emotional crutch to encouraging her independence, while finding her own direction in life"
+        },
+        {
+            "name": "Dr. Leonard Cho",
+            "role": "Lead neurologist at the rehab hospital",
+            "traits": [
+                "clinical",
+                "rational",
+                "quietly kind"
+            ],
+            "arc": "Learns to see patients as more than their conditions, becomes a quiet advocate for Ava and Caleb’s bond."
+        },
+        {
+            "name": "Tessa Hart",
+            "role": "Caleb’s older sister and legal guardian",
+            "traits": [
+                "protective",
+                "practical",
+                "overbearing"
+            ],
+            "arc": "Must learn to release control and trust Caleb’s healing process, even if it doesn’t look the way she expects"
+        },
+        {
+            "name": "Dean Archer",
+            "role": "Ava’s late fiancé (appears in memories and letters)",
+            "traits": [
+                "idealistic",
+                "charming",
+                "selfless"
+            ],
+            "arc": " Though deceased, Dean’s presence fades from an idealized ghost to a bittersweet memory that Ava learns to honor without clinging to"
+        },
+        {
+            "name": "Elias Montrose",
+            "role": "Fellow patient and veteran in the rehab ward",
+            "traits": [
+                "blunt",
+                "humorous",
+                "nurturing"
+            ],
+            "arc": "A side character whose gentle mentorship subtly influences Ava’s emotional growth through shared journal exercises"
+        }
+    ],
+    "timeline_key_events": [
+        "1. Ava begins her new rotation at a rehabilitation hospital in Austin.",
+        "2. Caleb Hart is admitted with aphasia following a traumatic brain injury.",
+        "3. Ava is assigned as Caleb’s primary speech therapist.",
+        "4. Caleb refuses to participate in therapy and lashes out in frustration.",
+        "5. Ava uses silent presence and creative techniques to break the ice.",
+        "6. Caleb draws a photo of Ava in place of speaking.",
+        "7. Ava visits her fiancé’s grave after a difficult session with Caleb.",
+        "8. Caleb mouths his first word during an emotional breakthrough with Ava.",
+        "9. Maya warns Ava she’s getting too emotionally invested.",
+        "10. Caleb has a panic attack triggered by a war photo on the news.",
+        "11. Ava comforts him, and they share a vulnerable, nonverbal connection.",
+        "12. Caleb’s sister Tessa questions Ava’s professional boundaries.",
+        "13. Caleb begins journaling using photos and broken words.",
+        "14. Ava finds a photo of a dead child in Caleb’s files and confronts him.",
+        "15. Caleb finally speaks clearly, sharing the story behind the photo.",
+        "16. Ava admits she hasn’t fully grieved her fiancé’s death.",
+        "17. They kiss, but Ava pulls away, scared by the intimacy.",
+        "18. Elias, a fellow patient, encourages Caleb not to give up.",
+        "19. Caleb gives Ava a hand-made book of his photos with captions.",
+        "20. Ava reads her fiancé’s old letters and decides to let go.",
+        "21. Ava and Caleb go on a day pass together and share a quiet, joyful day.",
+        "22. Dr. Cho warns Ava her job could be at risk due to attachment.",
+        "23. Caleb defends Ava publicly during a review meeting.",
+        "24. Caleb is discharged from inpatient rehab.",
+        "25. Ava leaves the hospital after her rotation ends.",
+        "26. Months later, they reunite at a photography exhibit — Caleb’s first since recovery.",
+        "27. Ava and Caleb walk through the gallery in silence, holding hands.",
+        "28. Caleb whispers, \"Stay,\" and Ava says, \"I already did.\""
+    ],
+    "thematic_notes": [
+        "The weight of unspoken grief",
+        "The slow nature of healing",
+        "The ethics of connection",
+        "Trust built through presence, not promises",
+        "Memory as both prison and map",
+        "Voice as identity",
+        "Letting go without forgetting",
+        "Love as co-survival"
+    ],
+    "continuity_checklist": [],
+    "special_instructions": "",
+    "style_preset_name": "Colleen Hoover (new-adult romance)"
+}
