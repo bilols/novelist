@@ -1,7 +1,7 @@
 # 🐍 Novelist Pipeline (draft_v1)
 
-An experimental Python workflow that turns a high‑level outline and style guide into a **full first‑draft novel**, then stitches the chapters, summaries, and epilogue into a clean manuscript.  
-Powered by the OpenAI Chat Completions API.
+A (very) experimental Python workflow that turns a high‑level outline and style guide into a **full first‑draft novel**, then stitches the chapters, summaries, and epilogue into a clean manuscript.  
+Powered by the OpenAI Chat Completions API. It is only a prototype and not updated or maintained. 
 
 > **Current milestone:** end‑to‑end draft generation (≈ 68 000 words) with model tagging, per‑chapter summaries, optional digest, and markdown manuscript builder.
 
